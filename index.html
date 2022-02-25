@@ -10,21 +10,34 @@
         <script>
             const textInput = document.querySelector('.inputText');
             const databaseList = document.querySelector('.databaseList');
+           
 
-            async function request(){
-                const response = await fetch('http://localhost:8080/',{
-                    "method":'GET',
+            async function request(value){
+                while ( databaseList.hasChildNodes() ){ databaseList.removeChild( databaseList.firstChild ); }
+
+                const response = await fetch("http://localhost:8080/",{
+                    "method":'POST',
                     "headers":{
                         "Accept":'application/json'
-                    }
-                    
+                    },
+                    body:JSON.stringify({
+                        data:value,
+                    })
                     });
                 const data = await response.json();
                 console.log(data);
+                data.map(a => {
+                    const newLi = document.createElement('li');
+                    const newContent = document.createTextNode(`${a['id']}:${a['msg']}`);
+                    newLi.appendChild(newContent);
+                    databaseList.appendChild(newLi);
+                })
+                
+
             }
             function enterkey(){
                 if(window.event.keyCode == 13){
-                    request();
+                    request(window.event.target.value);
                 }
             }
         </script>

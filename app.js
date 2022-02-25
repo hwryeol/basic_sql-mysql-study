@@ -1,31 +1,24 @@
-let mysql = require('mysql')
+let mysql = require('mysql2')
 require('dotenv').config();
 const http = require('http');
 const url = require('url');
 const fs = require('fs');
 
-let queryResult; 
+let queryResult;
+let msg = [];
 
 let connection = mysql.createConnection({
     host:'localhost',
     user:'root',
     password:process.env.DB_PASSWORD,
     multipleStatements:true,
-    database:'my_db',
-});
-
-const query = "SELECT * FROM board;";
-const msg = ['aaaa'];
-
-connection.query(query,msg,function (error, results, fields){
-    if (error) throw error;
-    queryResult = results;
-    console.log(typeof results);
+    database:'nodejs_test',
 });
 
 
 
-connection.end();
+
+
 
 
 http.createServer((request, response) => {
@@ -34,7 +27,6 @@ http.createServer((request, response) => {
   if (request.method === 'GET') { // GET 요청이면
     if (path === '/') { // 주소가 /이면
     response.writeHead(200,{'Content-Type':'Application/json'});
-    console.log(queryResult?.Type)
     response.end(JSON.stringify(queryResult));
     // response.end(templateHTML(), 'utf-8');
     } else { // 매칭되는 주소가 없으면
@@ -42,6 +34,23 @@ http.createServer((request, response) => {
       response.end('주소가 없습니다');
     }
   } else if(request.method === 'POST'){
-
+    response.writeHead(200,{'Content-Type':'Application/json'});
+    request.on('data',chunck => {
+      msg = JSON.parse(chunck.toString())["data"];
+      const query = 'INSERT INTO board(msg) VALUES(?);SELECT * FROM board;';
+      connection.query(query,[msg],function (error, results, fields){
+        if (error) throw error;
+        queryResult = results[1];
+        console.log(queryResult);
+        response.end(JSON.stringify(queryResult));
+      });
+      
+    })
   }
 }).listen(8080);
+
+
+// connection.end();
+
+      
+
